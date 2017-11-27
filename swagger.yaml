@@ -1,0 +1,330 @@
+swagger: "2.0"
+info:
+  description: "Quad API"
+  version: "1.0.0"
+  title: "Quad API"
+  termsOfService: "https://<yourname>.azurewebsites.net/Legal"
+  contact:
+    email: "admin@xyz.tld"
+host: "yourname.azurewebsites.net"
+basePath: "/api/v1"
+tags:
+- name: "motor"
+  description: "Motor-related entities and operations"
+- name: "esc"
+  description: "ESC-related entities and operations"
+- name: "pdb"
+  description: "PDB-related entities and operations"
+- name: "fc"
+  description: "Flight-controller entities and operations"
+- name: "vtx"
+  description: "Video transmission-related entities and operations"
+- name: "rx"
+  description: "Radio receiver related entities and operations"
+- name: "camera"
+  description: "Camera related entities and operations"
+- name: "accessories"
+  description: "Hardware that are not grouped with any other category"
+schemes:
+- "https"
+security:
+  - basicAuth: []
+paths:
+  /motor:
+    get:
+      tags:
+      - "motor"
+      summary: "Get all motor entries"
+      description: "Get all motor entries"
+      operationId: "getAllMotors"
+      produces: 
+      - "application/json"
+      parameters:
+      - in: "query"
+        name: "top"
+        type: "integer"
+      - in: "query"
+        name: "skip"
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Motor"
+        400:
+          description: "invalid input"
+    post:
+      tags:
+      - "motor"
+      summary: "Create a motor-entry"
+      description: "Adds a motor entry unless the modelName+Manufacturer combo already exists"
+      operationId: "postCreateMotor"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "New Motor Entry"
+        required: true
+        schema:
+          $ref: "#/definitions/Motor"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Motor"
+        400:
+          description: "Invalid input"
+  /motor/{id}:
+    get:
+      tags:
+      - "motor"
+      summary: "Get a specific motor entry"
+      description: "Get one motor entry"
+      operationId: "getMotorById"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "id"
+        type: "integer"
+        required: true
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Motor"
+        400:
+          description: "invalid input"
+    put:
+      tags:
+      - "motor"
+      summary: "Update an existing motor-entry"
+      description: "Updates a motor-entry given that it's a motor-unique property and not a shared property. Then that entity's own endpoint would have to be used to update it first"
+      operationId: "putUpdateMotor"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "id"
+        type: "integer"
+        required: true
+        description: "Motor entry ID to update, value should also exist in the incoming JSON"
+      - in: "body"
+        name: "body"
+        description: "Existing motor entry to update"
+        required: true
+        schema:
+          $ref: "#/definitions/Motor"
+      responses:
+        204:
+          description: "Update successful"
+        400:
+          description: "Invalid input"
+    delete:
+      tags:
+      - "motor"
+      summary: "Delete an existing motor-entry"
+      description: "Flags a motor entry for deletion so that when an administrator prunes the database from invalid/duplicate entries, it'll go away."
+      operationId: "deleteMotor"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "id"
+        type: "integer"
+        required: true
+        description: "Motor entry ID to delete, the modelName and manufacturer should be in the JSON content"
+      responses:
+        204:
+          description: "Delete successful"
+        400:
+          description: "Invalid input"
+definitions:
+  UnitOfMeasurement:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      value:
+        type: "integer"
+        format: "int64"
+      valueType:
+        type: "string"
+        description: "What type of unit does the value represent? mm? grams? cubic centimeters?"
+  Dimensions:
+    type: "object"
+    properties:
+      id: 
+        type: "integer"
+        format: "int64"
+      width:
+        $ref: "#/definitions/UnitOfMeasurement"
+      height:
+        $ref: "#/definitions/UnitOfMeasurement"
+      depth:
+        $ref: "#/definitions/UnitOfMeasurement"
+      weight:
+        $ref: "#/definitions/UnitOfMeasurement"
+      volume:
+        $ref: "#/definitions/UnitOfMeasurement"
+  SimpleItem:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      item_id:
+        type: "integer"
+        format: "int64"
+        description: "if there is a foreign key to an existing item, this should reference it"
+      item_entity_type:
+        type: "string"
+        description: "string name of class representing the linked item in item_id"
+      manufacturer:
+        $ref: "#/definitions/Manufacturer"
+      colors:
+        description: "it might be a single color, or it might be multicolor, or it might come with lots of different colors per package"
+        type: "array"
+        items:
+          type: "string"
+      description:
+        type: "string"
+      quantity:
+        type: "integer"
+        format: "int64"
+      dimensionsPerUnit:
+        $ref: "#/definitions/Dimensions"
+  MountingDimensions:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      mountingShape:
+        type: "string"
+        description: "square, line, pentagon, hexagon"
+      holeSize:
+        $ref: "#/definitions/UnitOfMeasurement"
+      holeDistance:
+        $ref: "#/definitions/UnitOfMeasurement"
+  Motor:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      dimensions:
+        $ref: "#/definitions/Dimensions"
+      package:
+        $ref: "#/definitions/Dimensions"
+      packageContent:
+        type: "array"
+        items:
+          $ref: "#/definitions/SimpleItem"
+      direction:
+        type: "boolean"
+        description: "CW = true, CCW = false"
+      magnetType:
+        type: "string"
+      numberOfMagnetSections:
+        type: "integer"
+        format: "int64"
+      motorType:
+        type: "string"
+        description: "brushed/brushless/...?"
+      buildMaterial:
+        type: "string"
+      modelName:
+        type: "string"
+        description: "Model name as specified by the manufacturer"
+      manufacturerArticleNumber:
+        type: "string"
+        description: "Articlenumber at manufacturer"
+      manufacturerDescription:
+        type: "string"
+        description: "Freetext description from the manufacturer"
+      manufacturer:
+        $ref: "#/definitions/Manufacturer"
+      mounting:
+        $ref: "#/definitions/MountingDimensions"
+      data:
+        type: "array"
+        items:
+          $ref: "#/definitions/MotorDataSheet"
+  Manufacturer:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name: 
+        type: "string"
+      countryOfOrigin:
+        type: "string"
+      customerSupport:
+        type: "string"
+      officialSite:
+        type: "string"
+  MotorDataSheet:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      motor:
+        $ref: "#/definitions/Motor"
+      prop:
+        $ref: "#/definitions/Propellers"
+      voltage:
+        $ref: "#/definitions/UnitOfMeasurement"
+      throttle:
+        $ref: "#/definitions/UnitOfMeasurement"
+      amperage:
+        $ref: "#/definitions/UnitOfMeasurement"
+      pull:
+        $ref: "#/definitions/UnitOfMeasurement"
+      watt:
+        $ref: "#/definitions/UnitOfMeasurement"
+      efficency:
+        $ref: "#/definitions/UnitOfMeasurement"
+      temp:
+        type: "integer"
+        format: "int64"
+        description: "Temperature in celsius at full throttle load for 10 minutes."
+  Propellers:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      manufacturer:
+        $ref: "#/definitions/Manufacturer"
+      size:
+        $ref: "#/definitions/UnitOfMeasurement"
+      tilt:
+        type: "integer"
+        format: "int64"
+        description: "Tilt in degrees"
+      blades:
+        type: "integer"
+        format: "int64"
+      fasteningType:
+        type: "string"
+        description: "single through hole, two holes, clip-on"
+      fasteningSize:
+        $ref: "#/definitions/UnitOfMeasurement"
+securityDefinitions:
+  basicAuth:
+    type: basic
+responses:
+  UnauthorizedError:
+    description: Authentication information is missing or invalid
+    headers:
+      WWW_Authenticate:
+        type: string
