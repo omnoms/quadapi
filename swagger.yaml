@@ -221,6 +221,11 @@ definitions:
         format: "int64"
       dimensions:
         $ref: "#/definitions/Dimensions"
+      kvrating:
+        type: "string"
+      axisDiameter:
+        type: "integer"
+        format: "int64"
       package:
         $ref: "#/definitions/Dimensions"
       packageContent:
@@ -228,8 +233,8 @@ definitions:
         items:
           $ref: "#/definitions/SimpleItem"
       direction:
-        type: "boolean"
-        description: "CW = true, CCW = false"
+        type: "string"
+        enum: ["CW","CCW"]
       magnetType:
         type: "string"
       numberOfMagnetSections:
@@ -237,6 +242,7 @@ definitions:
         format: "int64"
       motorType:
         type: "string"
+        enum: ["brushed","brushless"]
         description: "brushed/brushless/...?"
       buildMaterial:
         type: "string"
